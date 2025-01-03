@@ -17,7 +17,6 @@ const size_t k_max_msg = 4096;
 
 static int32_t one_request(int connfd)
 {
-    // 4 bytes header
     char rbuf[4 + k_max_msg + 1];
     int errno = 0;
     int32_t err = read_full(connfd, rbuf, 4);
@@ -40,7 +39,7 @@ static int32_t one_request(int connfd)
         msg("too long");
         return -1;
     }
-    // request body
+
     err = read_full(connfd, &rbuf[4], len);
     if (err)
     {
@@ -94,7 +93,7 @@ static int32_t write_all(int fd, const char *buf, size_t n)
 
 static void do_something(int connfd)
 {
-    // Read buffer
+
     char rbuf[64] = {};
     ssize_t n = read(connfd, rbuf, sizeof(rbuf) - 1);
 
@@ -106,7 +105,6 @@ static void do_something(int connfd)
 
     printf("Client says: %s", rbuf);
 
-    // Write buffer
     char wbuf[] = "World";
     write(connfd, wbuf, strlen(wbuf));
 }
