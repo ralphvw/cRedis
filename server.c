@@ -6,11 +6,20 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <fcntl.h>
+#include <stdbool.h>
 
 void die(const char *message)
 {
     perror(message);
     exit(EXIT_FAILURE);
+}
+
+static void fd_set_nonblock(int fd)
+{
+    int flags = fcntl(fd, F_GETFL, 0);
+    flags |= O_NONBLOCK;
+    fcntl(fd, F_SETFL, flags);
 }
 
 const size_t k_max_msg = 4096;
@@ -156,7 +165,6 @@ int main()
             }
         }
 
-        do_something(connfd);
         close(connfd);
     }
 }
