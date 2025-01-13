@@ -20,5 +20,6 @@ void conn_free(Conn *conn);
 void conn_add_incoming(Conn *conn, const uint8_t *data, size_t len);
 void conn_add_outgoing(Conn *conn, const uint8_t *data, size_t len);
 void conn_clear_buffers(Conn *conn);
+Conn *handle_accept(int fd);
 
 #endif // CONN_H

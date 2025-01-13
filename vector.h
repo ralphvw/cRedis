@@ -20,5 +20,7 @@ void *vector_get(const Vector *vec, size_t index);
 void vector_resize(Vector *vec, size_t new_size);
 size_t vector_size(const Vector *vec);
 size_t vector_capacity(const Vector *vec);
+void buf_consume(Vector *buf, size_t n);
+void buf_append(Vector *buf, const uint8_t *data, size_t len);
 
 #endif // VECTOR_H

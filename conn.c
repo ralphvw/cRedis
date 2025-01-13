@@ -1,6 +1,10 @@
 #include "conn.h"
 #include <stdlib.h> // For malloc, free
 #include <string.h> // For memcpy
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 // Create a new Conn instance
 Conn *conn_create()
@@ -18,6 +22,40 @@ Conn *conn_create()
     conn->want_close = false;
     conn->incoming = vector_create(sizeof(uint8_t)); // Initialize incoming buffer
     conn->outgoing = vector_create(sizeof(uint8_t)); // Initialize outgoing buffer
+
+    return conn;
+}
+
+void fd_set_nb(int fd)
+{
+    if (fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK) < 0)
+    {
+        perror("fcntl(F_SETFL, O_NONBLOCK)");
+        exit(EXIT_FAILURE);
+    }
+}
+
+// Accept a new connection
+Conn *handle_accept(int fd)
+{
+    struct sockaddr_in client_addr = {};
+    socklen_t socklen = sizeof(client_addr);
+
+    // Accept the new connection
+    int connfd = accept(fd, (struct sockaddr *)&client_addr, &socklen);
+    if (connfd < 0)
+    {
+        perror("accept");
+        return NULL;
+    }
+
+    // Set the new connection's file descriptor to non-blocking mode
+    fd_set_nb(connfd);
+
+    // Create a new Conn instance
+    Conn *conn = conn_create();
+    conn->fd = connfd;
+    conn->want_read = true; // Read the first request
 
     return conn;
 }

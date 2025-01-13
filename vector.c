@@ -1,7 +1,7 @@
 #include "vector.h"
-#include <stdlib.h> // For malloc, realloc, free
-#include <string.h> // For memcpy, memset
-#include <stdio.h>  // For debug purposes (optional)
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 // Create a new vector
 Vector *vector_create(size_t element_size)
@@ -108,4 +108,28 @@ size_t vector_size(const Vector *vec)
 size_t vector_capacity(const Vector *vec)
 {
     return vec->capacity;
+}
+
+void buf_append(Vector *buf, const uint8_t *data, size_t len)
+{
+    for (size_t i = 0; i < len; i++)
+    {
+        vector_push_back(buf, &data[i]);
+    }
+}
+
+void buf_consume(Vector *buf, size_t n)
+{
+    if (n >= vector_size(buf))
+    {
+        // If consuming more or equal to the size, clear the buffer
+        vector_resize(buf, 0);
+    }
+    else
+    {
+        // Shift elements to the front
+        memmove(buf->data, (uint8_t *)buf->data + n, (vector_size(buf) - n) * buf->element_size);
+        // Adjust the size of the vector
+        vector_resize(buf, vector_size(buf) - n);
+    }
 }
