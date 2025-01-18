@@ -78,6 +78,82 @@ static void fd_set_nonblock(int fd)
     fcntl(fd, F_SETFL, flags);
 }
 
+int parse_req(const uint8_t *data, size_t size, Vector *out)
+{
+    const uint8_t *end = data + size;
+    uint32_t nstr = 0;
+
+    // Read the number of strings
+    if (!read_u32(&data, end, &nstr))
+    {
+        return -1;
+    }
+    // if (nstr > K_MAX_ARGS)
+    // {
+    //     return -1; // Safety limit exceeded
+    // }
+
+    // Read each string
+    while (vector_size(out) < nstr)
+    {
+        uint32_t len = 0;
+
+        // Read the length of the string
+        if (!read_u32(&data, end, &len))
+        {
+            return -1;
+        }
+
+        // Allocate space for the string and read it
+        char *str = NULL;
+        if (!read_str(&data, end, len, &str))
+        {
+            return -1;
+        }
+
+        // Add the string to the vector
+        vector_push_back(out, str);
+    }
+
+    // Check for trailing garbage
+    if (data != end)
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
+static bool read_u32(const uint8_t **cur, const uint8_t *end, uint32_t *out)
+{
+    if (*cur + 4 > end)
+    {
+        return false;
+    }
+    memcpy(out, *cur, 4);
+    *cur += 4;
+    return true;
+}
+
+static bool read_str(const uint8_t **cur, const uint8_t *end, size_t n, char **out)
+{
+    if (*cur + n > end)
+    {
+        return false;
+    }
+
+    *out = malloc(n + 1);
+    if (*out == NULL)
+    {
+        return false;
+    }
+
+    memcpy(*out, *cur, n);
+    (*out)[n] = '\0';
+    *cur += n;
+    return true;
+}
+
 bool try_one_request(Conn *conn)
 {
     // Ensure there is enough data for the header
